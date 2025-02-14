@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ColorPicker - Javascript</title>
+
+    <style>
+
+        *{
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        .container{
+            width: 100%;
+            height: 100vh;
+            background-image: linear-gradient(to bottom, #250588, #0752de);
+            background-image: linear-gradient(to top, #508dff, #44028a);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 20px;
+            overflow: hidden;
+        }
+        .content{
+            width: 60%;
+            height: 70%;
+            background-color: red;
+            position: relative;
+            border-radius: 8px;
+        }
+        #canvas{
+            width: 100%;
+            height: 100%;
+            border: 2px solid black;
+            background-color: aliceblue;
+            cursor: crosshair;
+            border-radius: 8px;
+        }
+        #input{
+            padding: 20px;
+            background-color: rgb(228, 205, 249);
+            border: 2px solid black;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        #zoom{
+            position: absolute;
+            border: 2px solid black;
+            background-color: rgba(239, 243, 246, 0.759);
+            width: 150px;
+            height: 150px;
+            pointer-events: none;
+            overflow: hidden;
+            transform: translate(-50%, -50%);
+            display: none;
+            border-radius: 50%;
+        }
+        #zoom canvas{
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2 style="color: aliceblue; font-size: 34px; text-shadow: 4px 4px 4px black, 4px 4px 4px white;">Colorpicker</h2>
+        <div class="content">
+            <canvas id="canvas"></canvas>
+            <div id="zoom">
+            <canvas id="zoomcanvas"></canvas>
+            </div>
+        </div>
+
+        <div class="btns">
+            <input type="file" accept="image/*" id="input">
+        </div>
+    </div>
+
+
+
+    <script>
+        const input = document.getElementById("input");
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        const zoom = document.getElementById("zoom");
+        const zoomcanvas = document.getElementById("zoomcanvas");
+        const zctx = zoomcanvas.getContext("2d");
+
+        zoomcanvas.width = 150;
+        zoomcanvas.height = 150;
+
+
+        // This code upload the picture on the screen 
+        input.addEventListener("change", (e) => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                };
+                img.src = event.target.result;
+            }; 
+            reader.readAsDataURL(e.target.files[0]);
+        });
+
+
+        // When Someone Move The Mouse On the canvas its highlight it on  the zoomcanvas 
+        canvas.addEventListener("mousemove", (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const canvasX = (e.clientX - rect.left) * scaleX;
+            const canvasY = (e.clientY - rect.top) * scaleY;
+
+            zoom.style.display = 'block';
+            zoom.style.left = `${e.clientX}px`;
+            zoom.style.top = `${e.clientY}px`;
+
+            zctx.clearRect(0, 0, zoomcanvas.width, zoomcanvas.height);
+            zctx.drawImage(
+                canvas,
+                canvasX - 10, canvasY - 10, 20, 20,
+                0, 0, zoomcanvas.width, zoomcanvas.height 
+            );
+        });
+
+        canvas.addEventListener("mouseout", (e) => {
+            zoom.style.display = 'none';
+        });
+
+
+
+        canvas.addEventListener("click", (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const canvasX = (e.clientX - rect.left) * scaleX;
+            const canvasY = (e.clientY = rect.top) * scaleY;
+
+            const imagedata = ctx.getImageData(canvasX, canvasY, 1, 1).data;
+            const red = imagedata[0];
+            const green = imagedata[1];
+            const blue = imagedata[2];
+            const hex = rgbtohex(red, green, blue);
+            window.alert(`The Color You Choose is ${hex}`);
+        });
+
+
+        function rgbtohex(r, g, b){
+            return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()}`;
+
+        };
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+<!-- THIS WILL BE IMPROVE IN FUTURE IT IS ONLY FOR LIMIT USE WITH NO BACKEND THANK YOU !!!! -->
